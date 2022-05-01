@@ -1,0 +1,31 @@
+{
+  "type": "module",
+  "name": "full-stack-developer-server-node",
+  "version": "1.0.0",
+  "description": "Node.js HTTP Web Server for the Tuiter application",
+  "main": "hello.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "Node",
+    "REST",
+    "Server",
+    "HTTP"
+  ],
+  "author": "Thara Messeroux",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.2.10",
+    "needle": "^3.1.0",
+    "twitter": "^1.7.1",
+    "twitter-api-v2": "^1.12.0"
+  }
+}
