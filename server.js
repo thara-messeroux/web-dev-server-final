@@ -84,6 +84,26 @@ app.post('/api/login', async(req, res) => {
 	}
 });
 
+// delete user
+app.delete('/api/user/:id', async(req, res) => {
+	try{
+			const user = await User.findByIdAndDelete(req.params.id);
+			res.json({ status: 'ok' })
+	} catch(err){
+			res.json({ status: 'error', message: err })
+	}
+});
+
+// edit user
+app.put('/api/edituser/:id', async(req, res) => {
+	try{
+			const user = await User.findByIdAndUpdate(req.params.id, req.body);
+			res.json({ status: 'ok' })
+	} catch(err){
+			res.json({ status: 'error', message: err })
+	}
+});
+
 // this is the ID for @TwitterDev
 const userId = "216178597";
 const url = `https://api.twitter.com/2/users/${userId}/tweets`;
