@@ -27,18 +27,6 @@ app.use(cors())
 app.get('/', async(req,res) => {
 	res.send("Welcome to backend development")
 
-	try {
-        // Make request
-        const response = await getRequest();
-        console.dir(response, {
-            depth: null
-        });
-
-    } catch (e) {
-        console.log(e);
-        process.exit(-1);
-    }
-    process.exit();
 })
 // asynchronous
 app.post('/api/register', async(req, res) => {
@@ -46,10 +34,13 @@ app.post('/api/register', async(req, res) => {
 	try{
 			const user = await User.create(
 					{
-							name: req.body.name,
-							username: req.body.username,
-							email: req.body.email,
-							password: req.body.password,
+						name: req.body.name,
+						username: req.body.username,
+						email: req.body.email,
+						password: req.body.password,
+						phone: req.body.phone,
+						dob: req.body.dob,
+						college: req.body.college
 					}
 			);
 			res.json({ status: 'ok' })
@@ -67,7 +58,11 @@ app.post('/api/login', async(req, res) => {
 			const token = jsonwebtoken.sign({
 					id: user._id,
 					username: user.username,
-					password: user.password
+					password: user.password,
+					email: user.email,
+					phone: user.phone,
+					dob: user.dob,
+					college: user.college
 			}, 'secret123', {
 					expiresIn: '1h'
 			});
@@ -94,16 +89,6 @@ app.delete('/api/user/:id', async(req, res) => {
 	}
 });
 
-// getting userid info
-app.get('/api/user/:id', async(req, res) => {
-	try{
-			const user = await User.findById(req.params.id);
-			res.json({ status: 'ok', user })
-	} catch(err){
-			res.json({ status: 'error', message: err })
-	}
-});
-
 // edit user
 app.put('/api/edituser/:id', async(req, res) => {
 	try{
@@ -114,106 +99,34 @@ app.put('/api/edituser/:id', async(req, res) => {
 	}
 });
 
-// this is the ID for @TwitterDev
-const userId = "216178597";
-const url = `https://api.twitter.com/2/users/${userId}/tweets`;
-
-// The code below sets the bearer token from your environment variables
-// To set environment variables on macOS or Linux, run the export command below from the terminal:
-// export BEARER_TOKEN='YOUR-TOKEN'
-const bearerToken = process.env.BEARER_TOKEN;
-
-app.get('/tweets' , async (req, res) => {
-    let userTweets = [];
-
-    // we request the author_id expansion so that we can print out the user name later
-    let params = {
-        "max_results": 100,
-        "tweet.fields": "created_at",
-        "expansions": "author_id"
-    }
-
-    const options = {
-        headers: {
-            "User-Agent": "v2UserTweetsJS",
-            "authorization": `Bearer ${bearerToken}`
-        }
-    }
-
-    let hasNextPage = true;
-    let nextToken = null;
-    let userName;
-    console.log("Retrieving Tweets...");
-
-    while (hasNextPage) {
-        let resp = await getPage(params, options, nextToken);
-        if (resp && resp.meta && resp.meta.result_count && resp.meta.result_count > 0) {
-            userName = resp.includes.users[0].username;
-            if (resp.data) {
-                userTweets.push.apply(userTweets, resp.data);
-            }
-            if (resp.meta.next_token) {
-                nextToken = resp.meta.next_token;
-            } else {
-                hasNextPage = false;
-            }
-        } else {
-            hasNextPage = false;
-        }
-    }
-
-    console.dir(userTweets, {
-        depth: null
-    });
-    console.log(`Got ${userTweets.length} Tweets from ${userName} (user ID ${userId})!`);
-	res.send(userTweets);
+// getting all the users
+app.get('/api/users', async(req, res) => {
+	try{
+			const users = await User.find();
+			res.json({ status: 'ok', users })
+	} catch(err){
+			res.json({ status: 'error', message: err })	
+	}
 })
 
-const getPage = async (params, options, nextToken) => {
-    if (nextToken) {
-        params.pagination_token = nextToken;
-    }
+// getting userid info
+app.get('/api/user/:id', async(req, res) => {
+	try{
+			const user = await User.findById(req.params.id);
+			res.json({ status: 'ok', user })
+	} catch(err){
+			res.json({ status: 'error', message: err })
+	}
+});
 
-    try {
-        const resp = await needle('get', url, params, options);
-
-        if (resp.statusCode != 200) {
-            console.log(`${resp.statusCode} ${resp.statusMessage}:\n${resp.body}`);
-            return;
-        }
-        return resp.body;
-    } catch (err) {
-        throw new Error(`Request failed: ${err}`);
-    }
-}
-
-app.get('/user', async (req, res) => {
-	const endpointURL = "https://api.twitter.com/2/users/by?usernames="
-
-	    // These are the parameters for the API request
-	    // specify User names to fetch, and any additional fields that are required
-	    // by default, only the User ID, name and user name are returned
-	    const params = {
-	        usernames: "Thatoue", // Edit usernames to look up
-	        "user.fields": "created_at,description,profile_image_url", // Edit optional query parameters here
-	        "expansions": "pinned_tweet_id",
-	    }
-
-	    // this is the HTTP header that adds bearer token authentication
-	    const options = {
-			headers: {
-				"User-Agent": "v2UserTweetsJS",
-				"authorization": `Bearer ${bearerToken}`
-			}
-		}
-
-		// this is the request to the API
-		const resp = await needle('get', endpointURL, params, options);
-
-		// this is the response from the API
-		const user = resp.body;
-		
-		res.send(user);
+// getting user info with username
+app.get('/api/user/username/:username', async(req, res) => {
+	try{
+			const user = await User.findOne({ username: req.params.username });
+			res.json({ status: 'ok', user })
+	} catch(err){
+			res.json({ status: 'error', message: err })
+	}
 })
 
 app.listen(process.env.PORT || 4000, () => {
